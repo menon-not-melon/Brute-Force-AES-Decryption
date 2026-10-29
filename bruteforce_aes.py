@@ -23,3 +23,11 @@ def main() -> None:
     ciphertext = INPUT_FILE.read_bytes()
     if len(ciphertext) < 32 or len(ciphertext) % AES.block_size:
         raise ValueError("Expected at least an IV and one AES block, with a multiple-of-16 file size")
+    
+    # The first ciphertext block is the IV; remaining bytes are CBC-encrypted data.
+    iv = ciphertext[:AES.block_size]
+    encrypted = ciphertext[AES.block_size:]
+
+    best_entropy = float("inf")
+    best_key = None
+    best_plaintext = None
