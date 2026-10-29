@@ -18,3 +18,8 @@ def shannon_entropy(data: bytes) -> float:
     counts = Counter(data)
     length = len(data)
     return -sum((count / length) * log2(count / length) for count in counts.values())
+
+def main() -> None:
+    ciphertext = INPUT_FILE.read_bytes()
+    if len(ciphertext) < 32 or len(ciphertext) % AES.block_size:
+        raise ValueError("Expected at least an IV and one AES block, with a multiple-of-16 file size")
