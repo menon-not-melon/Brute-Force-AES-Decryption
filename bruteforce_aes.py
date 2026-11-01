@@ -31,3 +31,34 @@ def main() -> None:
     best_entropy = float("inf")
     best_key = None
     best_plaintext = None
+
+    # The first two key bytes range from 0000 through ffff; the remaining bytes are zero.
+    for prefix in range(1 << 16):
+        key = prefix.to_bytes(2, "big") + bytes(14)
+        plaintext = AES.new(key, AES.MODE_CBC, iv).decrypt(encrypted)
+        entropy = shannon_entropy(plaintext)
+
+        # Wrong keys yield nearly random bytes (entropy near 8); substitution text
+        # has a concentrated character distribution and therefore lower entropy.
+        if entropy < best_entropy:
+            best_entropy = entropy
+            best_key = key
+            best_plaintext = plaintext
+
+    assert best_key is not None and best_plaintext is not None
+
+    # Remove standard PKCS#7 padding when present; otherwise preserve all bytes.
+    pad_length = best_plaintext[-1]
+    if 1 <= pad_length <= AES.block_size and best_plaintext.endswith(bytes([pad_length]) * pad_length):
+        best_plaintext = best_plaintext[:-pad_length]
+
+    PLAINTEXT_FILE.write_bytes(best_plaintext)
+    KEY_FILE.write_text(best_key.hex() + "\n", encoding="ascii")
+
+    print(f"Best key:       {best_key.hex()}")
+    print(f"Byte entropy:   {best_entropy:.4f} bits/byte")
+    print(f"Plaintext file: {PLAINTEXT_FILE}")
+    print(f"Key file:       {KEY_FILE}")
+
+if __name__ == "__main__":
+    main()
