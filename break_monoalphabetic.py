@@ -42,3 +42,8 @@ def init_key(cipher: str) -> list[str]:
     for cipher_letter, plain_letter in zip(cipher_order, ENGLISH_FREQUENCY_ORDER):
         decrypt_map[ord(cipher_letter) - ord("A")] = plain_letter
     return decrypt_map
+
+def decrypt(cipher: str, decrypt_map: list[str]) -> str:
+    # Apply the ciphertext-letter -> plaintext-letter lookup table
+    table = str.maketrans(ALPHABET, "".join(decrypt_map))
+    return cipher.upper().translate(table)
