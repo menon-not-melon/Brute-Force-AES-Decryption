@@ -18,3 +18,16 @@ ALPHABET = string.ascii_uppercase
 # Approximate letter frequencies in English, from most to least common. 
 # (Referred from https://mathcenter.oxford.emory.edu/site/math125/englishLetterFreqs/)
 ENGLISH_FREQUENCY_ORDER = "ETAOINSHRDLCUMWFGYPBVKJXQZ"
+
+def load_scorer():
+    #Load the provided n-gram scorer from the sibling Resources folder
+    if not NGRAM_MODULE.exists() or not NGRAM_FILE.exists():
+        raise FileNotFoundError(
+            "Could not find ngram_score.py and english_quadgrams.txt in "
+            f"{RESOURCE_DIR}. Keep the provided Resources folder beside Lab 01."
+        )
+
+    spec = importlib.util.spec_from_file_location("lab_ngram_score", NGRAM_MODULE)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.ngram_score(str(NGRAM_FILE))
