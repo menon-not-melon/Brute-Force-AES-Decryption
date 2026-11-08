@@ -31,3 +31,14 @@ def load_scorer():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.ngram_score(str(NGRAM_FILE))
+
+def init_key(cipher: str) -> list[str]:
+    # Build a first decryption guess by matching letter-frequency rankings.
+    # The returned list is a decryption map: its index is a ciphertext letter (A=0, B=1, ...) and its value is the guessed plaintext letter.
+
+    counts = Counter(ch for ch in cipher.upper() if ch in ALPHABET)
+    cipher_order = sorted(ALPHABET, key=lambda ch: counts[ch], reverse=True)
+    decrypt_map = [""] * 26
+    for cipher_letter, plain_letter in zip(cipher_order, ENGLISH_FREQUENCY_ORDER):
+        decrypt_map[ord(cipher_letter) - ord("A")] = plain_letter
+    return decrypt_map
