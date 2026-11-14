@@ -61,3 +61,49 @@ def randomize_map(decrypt_map: list[str], swaps: int, rng: random.Random) -> lis
         result[a], result[b] = result[b], result[a]
     return result
     
+def hill_climb(cipher: str, scorer, rng: random.Random) -> tuple[list[str], float]:
+    # Repeatedly keep the best improving one-swap neighbor until a peak
+    start_map = init_key(cipher)
+    best_overall_map = start_map.copy()
+    best_overall_score = score_text(decrypt(cipher, start_map), scorer)
+
+    # Re-start near the frequency guess to reduce the chance of stopping at a
+    # poor local peak. More swaps make a more different starting guess.
+    restart_perturbations = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+
+    for restart_number, perturbations in enumerate(restart_perturbations, start=1):
+        current_map = randomize_map(start_map, perturbations, rng)
+        current_score = score_text(decrypt(cipher, current_map), scorer)
+
+        while True:
+            next_map = current_map
+            next_score = current_score
+
+            # A neighbor is made by swapping the plaintext guesses for two
+            # ciphertext letters. There are 26*25/2 = 325 possible swaps.
+            for first in range(26):
+                for second in range(first + 1, 26):
+                    candidate = current_map.copy()
+                    candidate[first], candidate[second] = candidate[second], candidate[first]
+                    candidate_score = score_text(decrypt(cipher, candidate), scorer)
+                    if candidate_score > next_score:
+                        next_map = candidate
+                        next_score = candidate_score
+
+            # No single swap improved the score: this run reached a local peak.
+            if next_score <= current_score:
+                break
+
+            current_map = next_map
+            current_score = next_score
+
+        if current_score > best_overall_score:
+            best_overall_map = current_map.copy()
+            best_overall_score = current_score
+
+        print(
+            f"Restart {restart_number:2}: score {current_score:.2f} "
+            f"(best {best_overall_score:.2f})"
+        )
+
+    return best_overall_map, best_overall_score
