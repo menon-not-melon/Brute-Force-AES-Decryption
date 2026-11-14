@@ -47,3 +47,17 @@ def decrypt(cipher: str, decrypt_map: list[str]) -> str:
     # Apply the ciphertext-letter -> plaintext-letter lookup table
     table = str.maketrans(ALPHABET, "".join(decrypt_map))
     return cipher.upper().translate(table)
+
+def score_text(text: str, scorer) -> float:
+    # Score only letters; spaces and punctuation are not English quadgrams
+    letters_only = "".join(ch for ch in text if ch in ALPHABET)
+    return scorer.score(letters_only)
+
+def randomize_map(decrypt_map: list[str], swaps: int, rng: random.Random) -> list[str]:
+    # Make a nearby starting key by performing a number of random swaps
+    result = decrypt_map.copy()
+    for _ in range(swaps):
+        a, b = rng.sample(range(26), 2)
+        result[a], result[b] = result[b], result[a]
+    return result
+    
